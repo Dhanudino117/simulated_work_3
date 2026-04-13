@@ -64,4 +64,4 @@ print(f"\nAnomalies detected (IQR Localized): {df_clean['is_anomaly'].sum()}")
 # ── Save ──────────────────────────────────────────────────────────────────────
 os.makedirs('processed_data', exist_ok=True)
 df_clean.to_csv('processed_data/water_usage_clean.csv', index=False)
-print("\nSaved → processed_data/water_usage_clean.csv")
+print("\nSaved -> processed_data/water_usage_clean.csv")
