@@ -12,7 +12,10 @@ water_analysis/
 ├── scripts/
 │   ├── 01_load_clean.py    # Data loading & cleaning
 │   ├── 02_eda.py           # EDA & visualizations
-│   └── 03_insights.py      # Insights summary
+│   ├── 03_insights.py      # Insights summary
+│   ├── 04_models.py        # Phase 2 — Isolation Forest anomaly detection
+│   ├── 05_forecast.py      # Phase 2 — Random Forest demand forecasting
+│   └── 06_cluster.py       # Phase 2 — KMeans neighborhood clustering
 ├── output/                 # All charts (PNG)
 ├── website/
 │   └── index.html          # Final presentation website
@@ -24,7 +27,7 @@ water_analysis/
 
 ```bash
 # 1. Install dependencies
-pip install pandas matplotlib seaborn
+pip install pandas matplotlib seaborn scikit-learn
 
 # 2. Generate mock data
 python generate_data.py
@@ -32,13 +35,18 @@ python generate_data.py
 # 3. Clean the data
 python scripts/01_load_clean.py
 
-# 4. Generate charts
+# 4. Generate EDA charts
 python scripts/02_eda.py
 
 # 5. Print insights
 python scripts/03_insights.py
 
-# 6. Open website — just open website/index.html in your browser
+# 6. Phase 2 — ML scripts
+python scripts/04_models.py
+python scripts/05_forecast.py
+python scripts/06_cluster.py
+
+# 7. Open website — just open website/index.html in your browser
 ```
 
 ## Key Findings
@@ -48,6 +56,6 @@ python scripts/03_insights.py
 - Per-person normalization reveals hidden inefficiencies in smaller households
 
 ## Tools Used
-- Python 3.x, Pandas, Matplotlib, Seaborn
+- Python 3.x, Pandas, Matplotlib, Seaborn, scikit-learn
 - VS Code
 - HTML/CSS for website

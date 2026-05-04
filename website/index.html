@@ -410,6 +410,91 @@
     .chart-tag.seasonal  { background: rgba(245,158,11,0.1); color: var(--warning); }
     .chart-tag.anomaly   { background: rgba(239,68,68,0.1); color: var(--danger); }
     .chart-tag.heatmap   { background: rgba(139,92,246,0.1); color: #a78bfa; }
+    .chart-tag.ml        { background: rgba(236,72,153,0.1); color: #f472b6; }
+    .chart-tag.forecast  { background: rgba(14,165,233,0.1); color: #38bdf8; }
+    .chart-tag.cluster   { background: rgba(168,85,247,0.1); color: #c084fc; }
+
+    /* ── ML Findings Box ─────────────────────────────────────────────────── */
+    .ml-findings {
+      background: linear-gradient(135deg, rgba(17,24,45,0.9), rgba(25,35,60,0.7));
+      border: 1px solid rgba(236,72,153,0.2);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      margin-top: 36px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+    .ml-findings::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6);
+    }
+    .ml-findings h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ml-findings h3 .ml-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(236,72,153,0.12);
+      color: #f472b6;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .ml-findings ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .ml-findings li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .ml-findings li .bullet {
+      min-width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .ml-findings li:nth-child(1) .bullet { background: rgba(239,68,68,0.12); color: #ef4444; }
+    .ml-findings li:nth-child(2) .bullet { background: rgba(14,165,233,0.12); color: #38bdf8; }
+    .ml-findings li:nth-child(3) .bullet { background: rgba(168,85,247,0.12); color: #c084fc; }
+
+    /* ── ML Section Intro ────────────────────────────────────────────────── */
+    .ml-intro {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin-bottom: 40px;
+      line-height: 1.75;
+    }
+    .ml-intro strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
     .chart-title {
       font-size: 1.2rem;
       font-weight: 700;
@@ -651,6 +736,7 @@
     <li><a href="#overview" class="active">Overview</a></li>
     <li><a href="#charts">Visualizations</a></li>
     <li><a href="#insights">Insights</a></li>
+    <li><a href="#ml-insights">ML Insights</a></li>
     <li><a href="#recommendations">Actions</a></li>
   </ul>
 </nav>
@@ -885,6 +971,91 @@
   </div>
 </section>
 
+<!-- ═══ Phase 2 — Machine Learning Insights ═══════════════════════════════ -->
+<section class="section" id="ml-insights">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label"><span class="line"></span> Phase 2</div>
+      <h2 class="section-title">Machine Learning Insights</h2>
+      <p class="ml-intro">
+        Building on Phase 1's exploratory analysis, we applied three <strong>machine learning techniques</strong> to uncover deeper patterns:
+        <strong>Isolation Forest</strong> for anomaly detection, <strong>Random Forest Regression</strong> for demand forecasting,
+        and <strong>KMeans Clustering</strong> for grouping neighborhoods by usage behavior.
+      </p>
+    </div>
+
+    <div class="charts-grid">
+      <!-- ML Chart 1 — Anomaly Detection (full width) -->
+      <div class="chart-card reveal">
+        <div class="chart-header">
+          <div class="chart-tag ml">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            ML Anomaly Detection
+          </div>
+          <h3 class="chart-title">Isolation Forest — Anomalous Households</h3>
+          <p class="chart-desc">Unsupervised Isolation Forest model identifies anomalous water usage by analyzing total consumption, rolling averages, neighborhood deviations, and per-person ratios. Red markers represent ML-flagged anomalies.</p>
+        </div>
+        <div class="chart-image">
+          <img src="../output/06_anomaly_ml.png" alt="Scatter plot of water usage vs usage per person, with ML-detected anomalies highlighted in red" loading="lazy"/>
+        </div>
+      </div>
+
+      <!-- ML Charts 2 & 3 — Side by side -->
+      <div class="charts-row">
+        <div class="chart-card reveal">
+          <div class="chart-header">
+            <div class="chart-tag forecast">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+              Demand Forecast
+            </div>
+            <h3 class="chart-title">Actual vs Predicted Demand</h3>
+            <p class="chart-desc">Random Forest Regressor trained on lag features, seasonal encoding, and household size. The shaded region shows the 3-month test period with predicted vs actual values.</p>
+          </div>
+          <div class="chart-image">
+            <img src="../output/07_forecast.png" alt="Line chart comparing actual and predicted water demand over time" loading="lazy"/>
+          </div>
+        </div>
+
+        <div class="chart-card reveal">
+          <div class="chart-header">
+            <div class="chart-tag cluster">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="5" r="2"/><line x1="12" y1="9" x2="19" y2="7"/><line x1="12" y1="9" x2="5" y2="7"/></svg>
+              Clustering
+            </div>
+            <h3 class="chart-title">Neighborhood Usage Clusters</h3>
+            <p class="chart-desc">KMeans clustering with PCA-reduced visualization groups neighborhoods into three behavior profiles: High usage, Moderate usage, and Efficient.</p>
+          </div>
+          <div class="chart-image">
+            <img src="../output/09_clusters.png" alt="2D PCA scatter plot showing neighborhood clusters colored by usage category" loading="lazy"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key ML Findings -->
+    <div class="ml-findings reveal">
+      <h3>
+        Key ML Findings
+        <span class="ml-badge">Phase 2</span>
+      </h3>
+      <ul>
+        <li>
+          <span class="bullet">🔴</span>
+          <span><strong>Anomaly Detection:</strong> Isolation Forest identified ~3% of records as anomalous with [PRECISION]% precision and [RECALL]% recall against the original flag — update after running the model.</span>
+        </li>
+        <li>
+          <span class="bullet">📈</span>
+          <span><strong>Demand Forecasting:</strong> Random Forest achieved an RMSE of [X] L and R² of [Y] on the 3-month test set — update with actual values after running <code>05_forecast.py</code>.</span>
+        </li>
+        <li>
+          <span class="bullet">🟣</span>
+          <span><strong>Neighborhood Clustering:</strong> Three distinct usage profiles emerged — update cluster labels and neighborhoods after running <code>06_cluster.py</code>.</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ Recommendations ══════════════════════════════════════════════════ -->
 <section class="section" id="recommendations">
   <div class="container">
@@ -948,6 +1119,7 @@
         <li><a href="#overview">Overview</a></li>
         <li><a href="#charts">Charts</a></li>
         <li><a href="#insights">Insights</a></li>
+        <li><a href="#ml-insights">ML Insights</a></li>
         <li><a href="#recommendations">Actions</a></li>
       </ul>
     </div>
