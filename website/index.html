@@ -639,6 +639,42 @@
     }
   </style>
 </head>
+<script>
+
+  async function predictScore() {
+  
+      const hours = document.getElementById("hours").value;
+  
+      try {
+  
+          const response = await fetch(
+              "http://127.0.0.1:5000/predict",
+              {
+                  method: "POST",
+  
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+  
+                  body: JSON.stringify({
+                      hours: Number(hours)
+                  })
+              }
+          );
+  
+          const data = await response.json();
+  
+          document.getElementById("result").innerText =
+              "Predicted Score: " + data.predicted_score;
+  
+      } catch(error) {
+  
+          document.getElementById("result").innerText =
+              "Error connecting to ML server";
+      }
+  }
+  
+</script>
 <body>
 
 <!-- ═══ Navigation ═══════════════════════════════════════════════════════ -->
@@ -895,6 +931,72 @@
         Actionable strategies derived from the data to reduce wastage, optimize billing, and improve water infrastructure.
       </p>
     </div>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="insights">
+    <h2>Key Insights</h2>
+    <ul class="insight-list">
+      <li>
+        <div class="icon">🏆</div>
+        <div class="text">
+          <strong>Tech Hub is the highest-consuming neighborhood</strong>
+          <span>Average usage is ~40% above the city-wide mean. Likely driven by larger household sizes and potential commercial mixing in residential data.</span>
+        </div>
+      </li>
+      <li>
+        <div class="icon">☀️</div>
+        <div class="text">
+          <strong>Summer usage is ~40% higher than winter</strong>
+          <span>June, July, and August consistently show the highest demand. Conservation campaigns are most impactful if launched in May before the spike.</span>
+        </div>
+      </li>
+      <li>
+        <div class="icon">⚠️</div>
+        <div class="text">
+          <strong>~3% of readings are anomalous</strong>
+          <span>Around 15 records show consumption 2–4x the normal range. These should be physically inspected for leaks or meter malfunctions.</span>
+        </div>
+      </li>
+      <li>
+        <div class="icon">👤</div>
+        <div class="text">
+          <strong>Per-person usage reveals true inefficiency</strong>
+          <span>When normalised by household size, some "low-total" neighborhoods actually have higher per-person usage, masking inefficiency.</span>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <h1>ML Prediction</h1>
+
+  <input
+    type="number"
+    id="hours"
+    placeholder="Enter study hours"
+  />
+  
+  <button onclick="predictScore()">
+    Predict
+  </button>
+  
+  <h2 id="result"></h2>
+
+
+
+
+
+
+
+</body>
+
+
+
+<h2 id="result"></h2>
+
+  <!-- RECOMMENDATIONS -->
+  <section id="recommendations">
+    <h2>Conservation Recommendations</h2>
 
     <div class="rec-grid">
       <div class="rec-card reveal">
