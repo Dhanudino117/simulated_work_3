@@ -49,5 +49,5 @@ df.loc[df.sample(frac=0.01).index, 'monthly_bill_usd'] = np.nan
 
 os.makedirs('raw_data', exist_ok=True)
 df.to_csv('raw_data/water_usage_raw.csv', index=False)
-print(f"Generated {len(df)} records → raw_data/water_usage_raw.csv")
+print(f"Generated {len(df)} records -> raw_data/water_usage_raw.csv")
 print(df.head())

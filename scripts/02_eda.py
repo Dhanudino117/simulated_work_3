@@ -25,7 +25,7 @@ fig.autofmt_xdate()
 plt.tight_layout()
 fig.savefig('output/01_monthly_trend.png')
 plt.close(fig)
-print("✓ Saved output/01_monthly_trend.png")
+print("[OK] Saved output/01_monthly_trend.png")
 
 # ── Chart 2: Neighborhood Comparison (Bar Chart) ─────────────────────────────
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -38,7 +38,7 @@ ax.set_ylabel('')
 plt.tight_layout()
 fig.savefig('output/02_neighborhood_usage.png')
 plt.close(fig)
-print("✓ Saved output/02_neighborhood_usage.png")
+print("[OK] Saved output/02_neighborhood_usage.png")
 
 # ── Chart 3: Seasonal Usage Distribution (Boxplot) ───────────────────────────
 season_map = {12: 'Winter', 1: 'Winter', 2: 'Winter',
@@ -57,7 +57,7 @@ ax.set_ylabel('Usage (Liters)')
 plt.tight_layout()
 fig.savefig('output/03_seasonal_boxplot.png')
 plt.close(fig)
-print("✓ Saved output/03_seasonal_boxplot.png")
+print("[OK] Saved output/03_seasonal_boxplot.png")
 
 # ── Chart 4: Anomaly Detection Scatter ────────────────────────────────────────
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -69,7 +69,7 @@ ax.scatter(anomaly['month'], anomaly['usage_liters'], color='red', s=60,
            marker='X', label='Anomaly', zorder=5)
 ax.axhline(y=df['usage_liters'].mean() + 2 * df['usage_liters'].std(),
            color='red', linestyle='--', alpha=0.5, label='Threshold')
-ax.set_title('Anomaly Detection — Water Usage', fontsize=14, fontweight='bold')
+ax.set_title('Anomaly Detection - Water Usage', fontsize=14, fontweight='bold')
 ax.set_xlabel('Month')
 ax.set_ylabel('Usage (Liters)')
 ax.legend()
@@ -77,7 +77,7 @@ fig.autofmt_xdate()
 plt.tight_layout()
 fig.savefig('output/04_anomalies.png')
 plt.close(fig)
-print("✓ Saved output/04_anomalies.png")
+print("[OK] Saved output/04_anomalies.png")
 
 # ── Chart 5: Neighborhood × Month Heatmap ────────────────────────────────────
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -95,6 +95,6 @@ ax.set_ylabel('')
 plt.tight_layout()
 fig.savefig('output/05_heatmap.png')
 plt.close(fig)
-print("✓ Saved output/05_heatmap.png")
+print("[OK] Saved output/05_heatmap.png")
 
-print("\n✅ All 5 charts saved to output/ folder.")
+print("\n[DONE] All 5 charts saved to output/ folder.")
