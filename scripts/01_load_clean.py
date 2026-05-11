@@ -100,6 +100,42 @@ df_clean = df_clean.assign(
     month_num=lambda x: x['month'].dt.month.astype('int8'),
 )
 
+season_map = {
+    12: 'Winter',
+    1: 'Winter',
+    2: 'Winter',
+    3: 'Spring',
+    4: 'Spring',
+    5: 'Spring',
+    6: 'Summer',
+    7: 'Summer',
+    8: 'Summer',
+    9: 'Autumn',
+    10: 'Autumn',
+    11: 'Autumn',
+}
+neighborhood_avg_usage = df_clean.groupby('neighborhood')['usage_liters'].transform('mean')
+neighborhood_std_usage = (
+    df_clean.groupby('neighborhood')['usage_liters'].transform('std').replace(0, pd.NA)
+)
+
+df_clean = df_clean.assign(
+    season=lambda x: x['month_num'].map(season_map).astype('category'),
+    is_summer_peak=lambda x: x['month_num'].isin([6, 7, 8]),
+    billing_rate_usd_per_liter=lambda x: (x['bill_usd'] / x['usage_liters']).round(4),
+    usage_gap_from_neighborhood_avg=lambda x: (
+        x['usage_liters'] - neighborhood_avg_usage
+    ).round(2),
+    neighborhood_usage_zscore=lambda x: (
+        (x['usage_liters'] - neighborhood_avg_usage) / neighborhood_std_usage
+    ).fillna(0).round(2),
+)
+df_clean['usage_segment'] = pd.cut(
+    df_clean['usage_per_person'],
+    bins=[float('-inf'), 75, 150, float('inf')],
+    labels=['efficient', 'typical', 'high'],
+).astype('category')
+
 df_clean['is_anomaly'] = df_clean.groupby(
     'neighborhood'
 )['usage_liters'].transform(flag_outliers_iqr)
