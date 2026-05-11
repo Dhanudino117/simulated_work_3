@@ -41,11 +41,12 @@ plt.close(fig)
 print("[OK] Saved output/02_neighborhood_usage.png")
 
 # ── Chart 3: Seasonal Usage Distribution (Boxplot) ───────────────────────────
-season_map = {12: 'Winter', 1: 'Winter', 2: 'Winter',
-              3: 'Spring', 4: 'Spring', 5: 'Spring',
-              6: 'Summer', 7: 'Summer', 8: 'Summer',
-              9: 'Autumn', 10: 'Autumn', 11: 'Autumn'}
-df['season'] = df['month'].dt.month.map(season_map)
+if 'season' not in df.columns:
+    season_map = {12: 'Winter', 1: 'Winter', 2: 'Winter',
+                  3: 'Spring', 4: 'Spring', 5: 'Spring',
+                  6: 'Summer', 7: 'Summer', 8: 'Summer',
+                  9: 'Autumn', 10: 'Autumn', 11: 'Autumn'}
+    df['season'] = df['month'].dt.month.map(season_map)
 season_order = ['Winter', 'Spring', 'Summer', 'Autumn']
 
 fig, ax = plt.subplots(figsize=(8, 5))
