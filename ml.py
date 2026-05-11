@@ -34,6 +34,7 @@ TARGET_COLUMN = 'usage_liters'
 NUMERIC_FEATURES = ['household_size', 'month_num', 'is_summer_peak']
 CATEGORICAL_FEATURES = ['neighborhood', 'season']
 FEATURE_COLUMNS = NUMERIC_FEATURES + CATEGORICAL_FEATURES
+DEFAULT_NEIGHBORHOOD = 'Green Park'
 
 
 app = Flask(__name__) if FLASK_AVAILABLE else None
@@ -49,6 +50,49 @@ def month_to_season(month_num):
     if month_num in [6, 7, 8]:
         return 'Summer'
     return 'Autumn'
+
+
+def normalize_neighborhood(value):
+    if value is None or str(value).strip() == '':
+        return DEFAULT_NEIGHBORHOOD
+    return str(value).strip().title()
+
+
+def build_prediction_frame(data):
+    errors = []
+
+    try:
+        household_size = float(data.get('household_size'))
+    except (TypeError, ValueError):
+        household_size = None
+        errors.append("household_size must be a number.")
+
+    try:
+        month_num = int(data.get('month'))
+    except (TypeError, ValueError):
+        month_num = None
+        errors.append("month must be an integer from 1 to 12.")
+
+    if household_size is not None and household_size < 1:
+        errors.append("household_size must be at least 1.")
+
+    if month_num is not None and month_num not in range(1, 13):
+        errors.append("month must be between 1 and 12.")
+
+    if errors:
+        return None, errors
+
+    neighborhood = normalize_neighborhood(data.get('neighborhood'))
+    season = month_to_season(month_num)
+    prediction_frame = pd.DataFrame([{
+        'household_size': household_size,
+        'month_num': month_num,
+        'is_summer_peak': month_num in [6, 7, 8],
+        'neighborhood': neighborhood,
+        'season': season,
+    }])
+
+    return prediction_frame, []
 
 
 def make_preprocessor():
@@ -187,37 +231,53 @@ print(f"Graph saved as: {PLOT_PATH}")
 print(f"Metrics saved as: {METRICS_PATH}")
 
 
+def predict_payload(data):
+    prediction_frame, errors = build_prediction_frame(data)
+    if errors:
+        return None, errors
+
+    predictions = {
+        model_name: round(float(model.predict(prediction_frame)[0]), 2)
+        for model_name, model in TRAINED_MODELS.items()
+    }
+
+    return {
+        "input": {
+            "household_size": float(prediction_frame.iloc[0]['household_size']),
+            "month": int(prediction_frame.iloc[0]['month_num']),
+            "neighborhood": prediction_frame.iloc[0]['neighborhood'],
+            "season": prediction_frame.iloc[0]['season'],
+            "is_summer_peak": bool(prediction_frame.iloc[0]['is_summer_peak']),
+        },
+        "best_model": BEST_MODEL_NAME,
+        "predicted_water_usage": predictions[BEST_MODEL_NAME],
+        "predictions_by_model": predictions,
+        "metrics": MODEL_METRICS.to_dict(orient='records'),
+    }, []
+
+
 if app is not None:
     @app.route("/")
     def home():
-        return "Municipal Water ML Server Running"
+        return jsonify({
+            "status": "running",
+            "best_model": BEST_MODEL_NAME,
+            "predict_endpoint": "/predict",
+        })
+
+    @app.route("/model-metrics", methods=["GET"])
+    def model_metrics():
+        return jsonify({
+            "best_model": BEST_MODEL_NAME,
+            "metrics": MODEL_METRICS.to_dict(orient='records'),
+        })
 
     @app.route("/predict", methods=["POST"])
     def predict():
-        try:
-            data = request.get_json() or {}
-            household_size = float(data["household_size"])
-            month_num = int(data["month"])
-            neighborhood = data.get("neighborhood", "Green Park")
-
-            prediction_frame = pd.DataFrame([{
-                'household_size': household_size,
-                'month_num': month_num,
-                'is_summer_peak': month_num in [6, 7, 8],
-                'neighborhood': neighborhood,
-                'season': month_to_season(month_num),
-            }])
-
-            prediction = TRAINED_MODELS[BEST_MODEL_NAME].predict(prediction_frame)[0]
-
-            return jsonify({
-                "model": BEST_MODEL_NAME,
-                "predicted_water_usage": round(float(prediction), 2),
-                "metrics": MODEL_METRICS.to_dict(orient='records'),
-            })
-
-        except Exception as exc:
-            return jsonify({"error": str(exc)}), 500
+        payload, errors = predict_payload(request.get_json() or {})
+        if errors:
+            return jsonify({"errors": errors}), 400
+        return jsonify(payload)
 
 
 if __name__ == "__main__":
