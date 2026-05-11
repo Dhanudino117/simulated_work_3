@@ -18,23 +18,33 @@ app = Flask(__name__)
 CORS(app)
 
 # -----------------------------------
-# DATASET
+# MUNICIPAL WATER DATASET
 # -----------------------------------
 
 data = {
 
-    "hours": [
-        1, 2, 3, 4, 5,
-        6, 7, 8, 9, 10,
+    "household_size": [
         2, 3, 4, 5, 6,
-        7, 8, 9
+        2, 3, 4, 5, 6,
+        3, 4, 5, 6, 7
     ],
 
-    "score": [
-        10, 20, 30, 40, 50,
-        60, 70, 80, 90, 100,
-        18, 28, 38, 48, 58,
-        68, 78, 88
+    "temperature": [
+        22, 24, 26, 30, 34,
+        21, 23, 27, 31, 35,
+        25, 28, 32, 36, 38
+    ],
+
+    "month": [
+        1, 2, 3, 4, 5,
+        6, 7, 8, 9, 10,
+        11, 12, 1, 2, 3
+    ],
+
+    "water_usage": [
+        120, 150, 180, 240, 300,
+        130, 160, 210, 260, 320,
+        170, 220, 280, 340, 380
     ]
 }
 
@@ -44,8 +54,13 @@ df = pd.DataFrame(data)
 # FEATURES AND TARGET
 # -----------------------------------
 
-X = df[["hours"]]
-y = df["score"]
+X = df[[
+    "household_size",
+    "temperature",
+    "month"
+]]
+
+y = df["water_usage"]
 
 # -----------------------------------
 # TRAIN TEST SPLIT
@@ -59,19 +74,17 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # -----------------------------------
-# LINEAR REGRESSION MODEL
+# LINEAR REGRESSION
 # -----------------------------------
 
 linear_model = LinearRegression()
 
-# MODEL TRAINING
 linear_model.fit(X_train, y_train)
 
-# PREDICTION
 linear_predictions = linear_model.predict(X_test)
 
 # -----------------------------------
-# RANDOM FOREST MODEL
+# RANDOM FOREST
 # -----------------------------------
 
 random_forest_model = RandomForestRegressor(
@@ -79,10 +92,8 @@ random_forest_model = RandomForestRegressor(
     random_state=42
 )
 
-# MODEL TRAINING
 random_forest_model.fit(X_train, y_train)
 
-# PREDICTION
 rf_predictions = random_forest_model.predict(X_test)
 
 # -----------------------------------
@@ -128,8 +139,7 @@ print("MAE :", round(rf_mae, 2))
 print("RMSE:", round(rf_rmse, 2))
 
 # -----------------------------------
-# GRAPH
-# Actual vs Predicted
+# ACTUAL VS PREDICTED GRAPH
 # -----------------------------------
 
 plt.figure(figsize=(8, 5))
@@ -151,10 +161,10 @@ plt.plot(
     [y.min(), y.max()]
 )
 
-plt.xlabel("Actual Values")
-plt.ylabel("Predicted Values")
+plt.xlabel("Actual Water Usage")
+plt.ylabel("Predicted Water Usage")
 
-plt.title("Actual vs Predicted")
+plt.title("Actual vs Predicted Water Usage")
 
 plt.legend()
 
@@ -164,13 +174,13 @@ print("\nGraph saved as:")
 print("actual_vs_predicted.png")
 
 # -----------------------------------
-# FLASK ROUTES
+# HOME ROUTE
 # -----------------------------------
 
 @app.route("/")
 def home():
 
-    return "ML Server Running"
+    return "Municipal Water ML Server Running"
 
 # -----------------------------------
 # PREDICTION API
@@ -183,18 +193,29 @@ def predict():
 
         data = request.get_json()
 
-        hours = float(data["hours"])
-
-        # USING RANDOM FOREST FOR FINAL PREDICTION
-        prediction = random_forest_model.predict(
-            [[hours]]
+        household_size = float(
+            data["household_size"]
         )
+
+        temperature = float(
+            data["temperature"]
+        )
+
+        month = float(
+            data["month"]
+        )
+
+        prediction = random_forest_model.predict([[
+            household_size,
+            temperature,
+            month
+        ]])
 
         result = round(float(prediction[0]), 2)
 
         return jsonify({
 
-            "predicted_score": result,
+            "predicted_water_usage": result,
 
             "linear_regression_mae":
                 round(linear_mae, 2),
