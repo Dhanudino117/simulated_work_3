@@ -1224,28 +1224,47 @@
   <!-- ML PREDICTION -->
   <section id="prediction">
 
-    <h2>Machine Learning Prediction</h2>
-
+    <h2>Machine Learning Water Usage Prediction</h2>
+  
     <div class="ml-box">
-
-      <p>Enter study hours to predict score</p>
-
-      <input
-        type="number"
-        id="hours"
-        placeholder="Enter study hours"
-      />
-
-      <br>
-
-      <button onclick="predictScore()">
-        Predict
-      </button>
-
-      <h2 id="result"></h2>
-
+  
+        <p>
+          Predict household water usage using
+          Machine Learning
+        </p>
+  
+        <input
+          type="number"
+          id="household_size"
+          placeholder="Household Size"
+        />
+  
+        <br><br>
+  
+        <input
+          type="number"
+          id="temperature"
+          placeholder="Temperature"
+        />
+  
+        <br><br>
+  
+        <input
+          type="number"
+          id="month"
+          placeholder="Month (1-12)"
+        />
+  
+        <br><br>
+  
+        <button onclick="predictWaterUsage()">
+          Predict Water Usage
+        </button>
+  
+        <h2 id="result"></h2>
+  
     </div>
-
+  
   </section>
 
   <!-- RECOMMENDATIONS -->
@@ -1326,6 +1345,69 @@
 
 <script>
 
+  async function predictWaterUsage() {
+  
+      const household_size =
+          document.getElementById(
+              "household_size"
+          ).value;
+  
+      const temperature =
+          document.getElementById(
+              "temperature"
+          ).value;
+  
+      const month =
+          document.getElementById(
+              "month"
+          ).value;
+  
+      try {
+  
+          const response = await fetch(
+              "http://127.0.0.1:5000/predict",
+              {
+                  method: "POST",
+  
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+  
+                  body: JSON.stringify({
+  
+                      household_size:
+                          Number(household_size),
+  
+                      temperature:
+                          Number(temperature),
+  
+                      month:
+                          Number(month)
+                  })
+              }
+          );
+  
+          const data = await response.json();
+  
+          document.getElementById("result")
+              .innerHTML =
+  
+              "Predicted Water Usage: " +
+  
+              data.predicted_water_usage +
+  
+              " Litres";
+  
+      } catch(error) {
+  
+          document.getElementById("result")
+              .innerHTML =
+  
+              "Error connecting to ML server";
+      }
+  }
+  
+  </script>
 async function predictScore() {
 
     const hours =
