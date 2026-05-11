@@ -84,7 +84,42 @@
     footer strong { color: #cde; }
   </style>
 </head>
+<script>
 
+  async function predictScore() {
+  
+      const hours = document.getElementById("hours").value;
+  
+      try {
+  
+          const response = await fetch(
+              "http://127.0.0.1:5000/predict",
+              {
+                  method: "POST",
+  
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+  
+                  body: JSON.stringify({
+                      hours: Number(hours)
+                  })
+              }
+          );
+  
+          const data = await response.json();
+  
+          document.getElementById("result").innerText =
+              "Predicted Score: " + data.predicted_score;
+  
+      } catch(error) {
+  
+          document.getElementById("result").innerText =
+              "Error connecting to ML server";
+      }
+  }
+  
+</script>
 <body>
 
 <header>
@@ -202,58 +237,23 @@
 
   <h1>ML Prediction</h1>
 
-<input
-  type="number"
-  id="hours"
-  placeholder="Enter study hours"
-/>
+  <input
+    type="number"
+    id="hours"
+    placeholder="Enter study hours"
+  />
+  
+  <button onclick="predictScore()">
+    Predict
+  </button>
+  
+  <h2 id="result"></h2>
 
-<button onclick="predictScore()">
-  Predict
-</button>
 
-<h2 id="result"></h2>
 
-<script>
 
-async function predictScore() {
 
-    const hours = document.getElementById("hours").value;
 
-    try {
-
-        const response = await fetch(
-            "http://127.0.0.1:5000/predict",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    hours: Number(hours)
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        console.log(data);
-
-        document.getElementById("result").innerText =
-            "Predicted Score: " + data.predicted_score;
-
-    } catch(error) {
-
-        console.log(error);
-
-        document.getElementById("result").innerText =
-            "Error connecting to ML server";
-    }
-}
-
-</script>
 
 </body>
 
