@@ -1,286 +1,246 @@
-import pickle
-from pathlib import Path
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+import matplotlib.pyplot as plt
+
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 
-try:
-    from flask import Flask, jsonify, request
-    from flask_cors import CORS
-    FLASK_AVAILABLE = True
-except ModuleNotFoundError:
-    Flask = None
-    jsonify = None
-    request = None
-    CORS = None
-    FLASK_AVAILABLE = False
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error
+)
 
+app = Flask(__name__)
+CORS(app)
 
-DATA_PATH = Path('processed_data/water_usage_clean.csv')
-PLOT_PATH = Path('actual_vs_predicted.png')
-MODEL_PATH = Path('model.pkl')
-METRICS_PATH = Path('output/model_comparison.csv')
-TARGET_COLUMN = 'usage_liters'
-NUMERIC_FEATURES = ['household_size', 'month_num', 'is_summer_peak']
-CATEGORICAL_FEATURES = ['neighborhood', 'season']
-FEATURE_COLUMNS = NUMERIC_FEATURES + CATEGORICAL_FEATURES
-DEFAULT_NEIGHBORHOOD = 'Green Park'
+# -----------------------------------
+# MUNICIPAL WATER DATASET
+# -----------------------------------
 
+data = {
 
-app = Flask(__name__) if FLASK_AVAILABLE else None
-if app is not None:
-    CORS(app)
+    "household_size": [
+        2, 3, 4, 5, 6,
+        2, 3, 4, 5, 6,
+        3, 4, 5, 6, 7
+    ],
 
+    "temperature": [
+        22, 24, 26, 30, 34,
+        21, 23, 27, 31, 35,
+        25, 28, 32, 36, 38
+    ],
 
-def month_to_season(month_num):
-    if month_num in [12, 1, 2]:
-        return 'Winter'
-    if month_num in [3, 4, 5]:
-        return 'Spring'
-    if month_num in [6, 7, 8]:
-        return 'Summer'
-    return 'Autumn'
+    "month": [
+        1, 2, 3, 4, 5,
+        6, 7, 8, 9, 10,
+        11, 12, 1, 2, 3
+    ],
 
+    "water_usage": [
+        120, 150, 180, 240, 300,
+        130, 160, 210, 260, 320,
+        170, 220, 280, 340, 380
+    ]
+}
 
-def normalize_neighborhood(value):
-    if value is None or str(value).strip() == '':
-        return DEFAULT_NEIGHBORHOOD
-    return str(value).strip().title()
+df = pd.DataFrame(data)
 
+# -----------------------------------
+# FEATURES AND TARGET
+# -----------------------------------
 
-def build_prediction_frame(data):
-    errors = []
+X = df[[
+    "household_size",
+    "temperature",
+    "month"
+]]
 
-    try:
-        household_size = float(data.get('household_size'))
-    except (TypeError, ValueError):
-        household_size = None
-        errors.append("household_size must be a number.")
+y = df["water_usage"]
 
-    try:
-        month_num = int(data.get('month'))
-    except (TypeError, ValueError):
-        month_num = None
-        errors.append("month must be an integer from 1 to 12.")
+# -----------------------------------
+# TRAIN TEST SPLIT
+# -----------------------------------
 
-    if household_size is not None and household_size < 1:
-        errors.append("household_size must be at least 1.")
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
 
-    if month_num is not None and month_num not in range(1, 13):
-        errors.append("month must be between 1 and 12.")
+# -----------------------------------
+# LINEAR REGRESSION
+# -----------------------------------
 
-    if errors:
-        return None, errors
+linear_model = LinearRegression()
 
-    neighborhood = normalize_neighborhood(data.get('neighborhood'))
-    season = month_to_season(month_num)
-    prediction_frame = pd.DataFrame([{
-        'household_size': household_size,
-        'month_num': month_num,
-        'is_summer_peak': month_num in [6, 7, 8],
-        'neighborhood': neighborhood,
-        'season': season,
-    }])
+linear_model.fit(X_train, y_train)
 
-    return prediction_frame, []
+linear_predictions = linear_model.predict(X_test)
 
+# -----------------------------------
+# RANDOM FOREST
+# -----------------------------------
 
-def make_preprocessor():
-    numeric_pipeline = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='median')),
-        ('scaler', StandardScaler()),
-    ])
-    categorical_pipeline = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('encoder', OneHotEncoder(handle_unknown='ignore', sparse_output=False)),
-    ])
-    return ColumnTransformer(transformers=[
-        ('numeric', numeric_pipeline, NUMERIC_FEATURES),
-        ('categorical', categorical_pipeline, CATEGORICAL_FEATURES),
-    ])
+random_forest_model = RandomForestRegressor(
+    n_estimators=100,
+    random_state=42
+)
 
+random_forest_model.fit(X_train, y_train)
 
-def load_training_data():
-    if not DATA_PATH.exists():
-        raise FileNotFoundError(
-            f"{DATA_PATH} is missing. Run scripts/01_load_clean.py first."
-        )
+rf_predictions = random_forest_model.predict(X_test)
 
-    df = pd.read_csv(DATA_PATH)
-    missing = set(FEATURE_COLUMNS + [TARGET_COLUMN]).difference(df.columns)
-    if missing:
-        raise ValueError(f"Training data is missing columns: {sorted(missing)}")
+# -----------------------------------
+# EVALUATION
+# -----------------------------------
 
-    return df
+linear_mae = mean_absolute_error(
+    y_test,
+    linear_predictions
+)
 
-
-def build_models():
-    return {
-        'Linear Regression': LinearRegression(),
-        'Random Forest': RandomForestRegressor(
-            n_estimators=250,
-            random_state=42,
-            min_samples_leaf=3,
-        ),
-        'Gradient Boosting': GradientBoostingRegressor(
-            n_estimators=180,
-            learning_rate=0.05,
-            max_depth=3,
-            random_state=42,
-        ),
-    }
-
-
-def evaluate_model(y_true, predictions):
-    mse = mean_squared_error(y_true, predictions)
-    return {
-        'mae': round(mean_absolute_error(y_true, predictions), 2),
-        'rmse': round(mse ** 0.5, 2),
-        'r2': round(r2_score(y_true, predictions), 3),
-    }
-
-
-def save_actual_vs_predicted_plot(y_test, predictions_by_model):
-    plt.figure(figsize=(9, 6))
-
-    for model_name, predictions in predictions_by_model.items():
-        plt.scatter(
-            y_test,
-            predictions,
-            alpha=0.65,
-            s=36,
-            label=model_name,
-        )
-
-    low = min(y_test.min(), *(pred.min() for pred in predictions_by_model.values()))
-    high = max(y_test.max(), *(pred.max() for pred in predictions_by_model.values()))
-    plt.plot([low, high], [low, high], color='black', linestyle='--', linewidth=1.3)
-    plt.xlabel('Actual Water Usage (Liters)')
-    plt.ylabel('Predicted Water Usage (Liters)')
-    plt.title('Actual vs Predicted Water Usage')
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(PLOT_PATH)
-    plt.close()
-
-
-def train_all_models():
-    df = load_training_data()
-    X = df[FEATURE_COLUMNS]
-    y = df[TARGET_COLUMN]
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42,
+linear_rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        linear_predictions
     )
+)
 
-    trained_models = {}
-    predictions_by_model = {}
-    metric_rows = []
+rf_mae = mean_absolute_error(
+    y_test,
+    rf_predictions
+)
 
-    for model_name, estimator in build_models().items():
-        pipeline = Pipeline(steps=[
-            ('preprocess', make_preprocessor()),
-            ('model', estimator),
-        ])
-        pipeline.fit(X_train, y_train)
-        predictions = pipeline.predict(X_test)
-        metrics = evaluate_model(y_test, predictions)
+rf_rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        rf_predictions
+    )
+)
 
-        trained_models[model_name] = pipeline
-        predictions_by_model[model_name] = predictions
-        metric_rows.append({'model': model_name, **metrics})
-
-    metrics_df = pd.DataFrame(metric_rows).sort_values('rmse').reset_index(drop=True)
-    best_model_name = metrics_df.iloc[0]['model']
-
-    METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    metrics_df.to_csv(METRICS_PATH, index=False)
-    save_actual_vs_predicted_plot(y_test, predictions_by_model)
-
-    with open(MODEL_PATH, 'wb') as model_file:
-        pickle.dump({
-            'model_name': best_model_name,
-            'pipeline': trained_models[best_model_name],
-            'features': FEATURE_COLUMNS,
-            'metrics': metrics_df.to_dict(orient='records'),
-        }, model_file)
-
-    return trained_models, metrics_df, best_model_name
-
-
-TRAINED_MODELS, MODEL_METRICS, BEST_MODEL_NAME = train_all_models()
-
+# -----------------------------------
+# PRINT RESULTS
+# -----------------------------------
 
 print("\n========== MODEL EVALUATION ==========\n")
-print(MODEL_METRICS.to_string(index=False))
-print(f"\nBest model: {BEST_MODEL_NAME}")
-print(f"Graph saved as: {PLOT_PATH}")
-print(f"Metrics saved as: {METRICS_PATH}")
 
+print("Linear Regression")
+print("MAE :", round(linear_mae, 2))
+print("RMSE:", round(linear_rmse, 2))
 
-def predict_payload(data):
-    prediction_frame, errors = build_prediction_frame(data)
-    if errors:
-        return None, errors
+print("\nRandom Forest")
+print("MAE :", round(rf_mae, 2))
+print("RMSE:", round(rf_rmse, 2))
 
-    predictions = {
-        model_name: round(float(model.predict(prediction_frame)[0]), 2)
-        for model_name, model in TRAINED_MODELS.items()
-    }
+# -----------------------------------
+# ACTUAL VS PREDICTED GRAPH
+# -----------------------------------
 
-    return {
-        "input": {
-            "household_size": float(prediction_frame.iloc[0]['household_size']),
-            "month": int(prediction_frame.iloc[0]['month_num']),
-            "neighborhood": prediction_frame.iloc[0]['neighborhood'],
-            "season": prediction_frame.iloc[0]['season'],
-            "is_summer_peak": bool(prediction_frame.iloc[0]['is_summer_peak']),
-        },
-        "best_model": BEST_MODEL_NAME,
-        "predicted_water_usage": predictions[BEST_MODEL_NAME],
-        "predictions_by_model": predictions,
-        "metrics": MODEL_METRICS.to_dict(orient='records'),
-    }, []
+plt.figure(figsize=(8, 5))
 
+plt.scatter(
+    y_test,
+    linear_predictions,
+    label="Linear Regression"
+)
 
-if app is not None:
-    @app.route("/")
-    def home():
+plt.scatter(
+    y_test,
+    rf_predictions,
+    label="Random Forest"
+)
+
+plt.plot(
+    [y.min(), y.max()],
+    [y.min(), y.max()]
+)
+
+plt.xlabel("Actual Water Usage")
+plt.ylabel("Predicted Water Usage")
+
+plt.title("Actual vs Predicted Water Usage")
+
+plt.legend()
+
+plt.savefig("actual_vs_predicted.png")
+
+print("\nGraph saved as:")
+print("actual_vs_predicted.png")
+
+# -----------------------------------
+# HOME ROUTE
+# -----------------------------------
+
+@app.route("/")
+def home():
+
+    return "Municipal Water ML Server Running"
+
+# -----------------------------------
+# PREDICTION API
+# -----------------------------------
+
+@app.route("/predict", methods=["POST"])
+def predict():
+
+    try:
+
+        data = request.get_json()
+
+        household_size = float(
+            data["household_size"]
+        )
+
+        temperature = float(
+            data["temperature"]
+        )
+
+        month = float(
+            data["month"]
+        )
+
+        prediction = random_forest_model.predict([[
+            household_size,
+            temperature,
+            month
+        ]])
+
+        result = round(float(prediction[0]), 2)
+
         return jsonify({
-            "status": "running",
-            "best_model": BEST_MODEL_NAME,
-            "predict_endpoint": "/predict",
+
+            "predicted_water_usage": result,
+
+            "linear_regression_mae":
+                round(linear_mae, 2),
+
+            "linear_regression_rmse":
+                round(linear_rmse, 2),
+
+            "random_forest_mae":
+                round(rf_mae, 2),
+
+            "random_forest_rmse":
+                round(rf_rmse, 2)
+
         })
 
-    @app.route("/model-metrics", methods=["GET"])
-    def model_metrics():
+    except Exception as e:
+
         return jsonify({
-            "best_model": BEST_MODEL_NAME,
-            "metrics": MODEL_METRICS.to_dict(orient='records'),
-        })
+            "error": str(e)
+        }), 500
 
-    @app.route("/predict", methods=["POST"])
-    def predict():
-        payload, errors = predict_payload(request.get_json() or {})
-        if errors:
-            return jsonify({"errors": errors}), 400
-        return jsonify(payload)
-
+# -----------------------------------
+# RUN SERVER
+# -----------------------------------
 
 if __name__ == "__main__":
-    if app is None:
-        raise SystemExit("Install flask and flask-cors to run the prediction API.")
+
     app.run(debug=True)
