@@ -3,85 +3,640 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Water Usage Analysis — Team 06</title>
+  <title>Municipal Water Usage Analysis | Team 06</title>
+  <meta name="description" content="Data-driven analysis of municipal water consumption patterns, seasonal trends, and conservation recommendations by Team 06."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #333; }
-
-    header {
-      background: linear-gradient(135deg, #1a6fb5, #0d4a82);
-      color: white; padding: 48px 24px; text-align: center;
+    /* ── Reset & Base ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0e1a;
+      color: #c8cdd8;
+      line-height: 1.7;
+      overflow-x: hidden;
     }
-    header h1 { font-size: 2rem; margin-bottom: 8px; }
-    header p  { font-size: 1rem; opacity: 0.85; }
 
-    nav {
-      display: flex; justify-content: center; gap: 12px;
-      background: #0d4a82; padding: 12px;
+    /* ── CSS Variables ────────────────────────────────────────────────────── */
+    :root {
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
+      --primary-dark: #1d4ed8;
+      --accent: #06d6a0;
+      --accent-glow: rgba(6, 214, 160, 0.15);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg-dark: #0a0e1a;
+      --bg-card: rgba(17, 24, 45, 0.7);
+      --bg-card-hover: rgba(25, 35, 60, 0.85);
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(59, 130, 246, 0.3);
+      --text-primary: #e8ecf4;
+      --text-secondary: #8892a8;
+      --text-muted: #5a6478;
+      --glass: rgba(255, 255, 255, 0.03);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.08);
     }
-    nav a {
-      color: #cde; text-decoration: none; padding: 6px 16px;
-      border-radius: 20px; font-size: 0.9rem; transition: background 0.2s;
+
+    /* ── Animated Background ─────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(6, 214, 160, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+      animation: bgShift 20s ease-in-out infinite alternate;
+      z-index: -1;
+      pointer-events: none;
     }
-    nav a:hover { background: rgba(255,255,255,0.2); }
-
-    .container { max-width: 1000px; margin: 0 auto; padding: 32px 16px; }
-
-    section { margin-bottom: 48px; }
-    section h2 {
-      font-size: 1.4rem; color: #1a6fb5;
-      border-left: 4px solid #1a6fb5; padding-left: 12px;
-      margin-bottom: 16px;
+    @keyframes bgShift {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      100% { transform: translate(-3%, -3%) rotate(3deg); }
     }
-    section p { line-height: 1.7; color: #555; margin-bottom: 12px; }
 
+    /* ── Scroll Reveal ───────────────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Navigation ──────────────────────────────────────────────────────── */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 40px;
+      background: rgba(10, 14, 26, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    .navbar.scrolled {
+      padding: 10px 40px;
+      background: rgba(10, 14, 26, 0.92);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+    .nav-brand .droplet {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-brand .droplet::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transform: rotate(45deg) translate(-2px, -2px);
+    }
+    .nav-links {
+      display: flex;
+      gap: 4px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      transition: all 0.25s ease;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--text-primary);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    /* ── Hero Section ────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 600px;
+      height: 600px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+      50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border-radius: 50px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: var(--primary-light);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.15;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+      letter-spacing: -0.02em;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      position: relative;
+      z-index: 1;
+      font-weight: 400;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    /* ── Container ───────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Section Common ──────────────────────────────────────────────────── */
+    .section {
+      padding: 100px 0;
+    }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 12px;
+    }
+    .section-label .line {
+      width: 24px;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 620px;
+      margin-bottom: 48px;
+    }
+
+    /* ── Stats Grid ──────────────────────────────────────────────────────── */
     .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px; margin: 24px 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 0;
     }
     .stat-card {
-      background: white; border-radius: 10px; padding: 20px;
-      text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      border-top: 4px solid #1a6fb5;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.35s ease;
+      position: relative;
+      overflow: hidden;
     }
-    .stat-card .number { font-size: 2rem; font-weight: 700; color: #1a6fb5; }
-    .stat-card .label  { font-size: 0.85rem; color: #777; margin-top: 4px; }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+    .stat-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glow);
+    }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+    .stat-icon.blue   { background: rgba(59, 130, 246, 0.12); color: var(--primary-light); }
+    .stat-icon.green  { background: rgba(6, 214, 160, 0.12); color: var(--accent); }
+    .stat-icon.amber  { background: rgba(245, 158, 11, 0.12); color: var(--warning); }
+    .stat-icon.red    { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+    .stat-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
 
+    /* ── Chart Cards ─────────────────────────────────────────────────────── */
+    .charts-grid {
+      display: grid;
+      gap: 24px;
+    }
     .chart-card {
-      background: white; border-radius: 10px; padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.35s ease;
     }
-    .chart-card h3 { font-size: 1rem; color: #333; margin-bottom: 8px; }
-    .chart-card p  { font-size: 0.9rem; color: #666; margin-bottom: 16px; }
-    .chart-card img { width: 100%; border-radius: 6px; }
-
-    .insight-list { list-style: none; padding: 0; }
-    .insight-list li {
-      background: white; border-radius: 8px; padding: 16px 20px;
-      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      border-left: 4px solid #27ae60; display: flex; align-items: flex-start; gap: 12px;
+    .chart-card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-glow);
     }
-    .insight-list li .icon { font-size: 1.3rem; }
-    .insight-list li .text strong { display: block; margin-bottom: 4px; }
-    .insight-list li .text span  { font-size: 0.88rem; color: #666; }
+    .chart-header {
+      padding: 24px 28px 16px;
+    }
+    .chart-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .chart-tag.trend     { background: rgba(59,130,246,0.1); color: var(--primary-light); }
+    .chart-tag.compare   { background: rgba(6,214,160,0.1); color: var(--accent); }
+    .chart-tag.seasonal  { background: rgba(245,158,11,0.1); color: var(--warning); }
+    .chart-tag.anomaly   { background: rgba(239,68,68,0.1); color: var(--danger); }
+    .chart-tag.heatmap   { background: rgba(139,92,246,0.1); color: #a78bfa; }
+    .chart-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .chart-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .chart-image {
+      padding: 0 20px 20px;
+    }
+    .chart-image img {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      display: block;
+      background: rgba(255,255,255,0.02);
+    }
 
+    /* ── Two-col layout for charts ───────────────────────────────────────── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    /* ── Insights ────────────────────────────────────────────────────────── */
+    .insights-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.35s ease;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .insight-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-glow);
+    }
+    .insight-icon {
+      min-width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .insight-icon.blue   { background: rgba(59,130,246,0.1); }
+    .insight-icon.green  { background: rgba(6,214,160,0.1); }
+    .insight-icon.amber  { background: rgba(245,158,11,0.1); }
+    .insight-icon.purple { background: rgba(139,92,246,0.1); }
+    .insight-content h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .insight-content p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .insight-metric {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(6, 214, 160, 0.1);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    /* ── Recommendations ─────────────────────────────────────────────────── */
     .rec-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
     }
     .rec-card {
-      background: white; border-radius: 10px; padding: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.07); text-align: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 22px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.35s ease;
+      position: relative;
     }
-    .rec-card .emoji { font-size: 2rem; margin-bottom: 10px; }
-    .rec-card h4 { color: #1a6fb5; margin-bottom: 6px; }
-    .rec-card p  { font-size: 0.85rem; color: #666; line-height: 1.6; }
+    .rec-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glow);
+    }
+    .rec-emoji {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+    }
+    .rec-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .rec-card p {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .rec-card .rec-number {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
 
-    footer {
-      background: #1a1a2e; color: #aaa; text-align: center;
-      padding: 24px; font-size: 0.85rem;
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
     }
-    footer strong { color: #cde; }
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+    }
+    .footer-brand .droplet-sm {
+      width: 22px;
+      height: 22px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+    }
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-copy {
+      width: 100%;
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Divider ─────────────────────────────────────────────────────────── */
+    .section-divider {
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 3px;
+      margin-bottom: 40px;
+      opacity: 0.7;
+    }
+
+    /* ── Mobile Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-row { grid-template-columns: 1fr; }
+      .insights-grid { grid-template-columns: 1fr; }
+      .rec-grid { grid-template-columns: repeat(2, 1fr); }
+      .navbar { padding: 12px 20px; }
+      .nav-links { gap: 0; }
+      .nav-links a { padding: 6px 12px; font-size: 0.82rem; }
+      .footer-content { flex-direction: column; text-align: center; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .rec-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2rem; }
+      .hero-subtitle { font-size: 1rem; }
+      .hero-cta { flex-direction: column; }
+      .nav-links { display: none; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
   </style>
 </head>
 <script>
@@ -122,81 +677,259 @@
 </script>
 <body>
 
-<header>
-  <h1>💧 Municipal Water Usage Analysis</h1>
-  <p>Team 06 &nbsp;|&nbsp; Applied Data Science Sprint #3 &nbsp;|&nbsp; 2023 Dataset</p>
-</header>
-
-<nav>
-  <a href="#overview">Overview</a>
-  <a href="#charts">Charts</a>
-  <a href="#insights">Insights</a>
-  <a href="#recommendations">Recommendations</a>
+<!-- ═══ Navigation ═══════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-brand">
+    <div class="droplet"></div>
+    AquaAnalytics
+  </a>
+  <ul class="nav-links">
+    <li><a href="#overview" class="active">Overview</a></li>
+    <li><a href="#charts">Visualizations</a></li>
+    <li><a href="#insights">Insights</a></li>
+    <li><a href="#recommendations">Actions</a></li>
+  </ul>
 </nav>
 
-<div class="container">
+<!-- ═══ Hero ═════════════════════════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Team 06 &middot; Applied Data Science Sprint #3
+  </div>
+  <h1>
+    Municipal <span class="gradient-text">Water Usage</span><br/>Analysis
+  </h1>
+  <p class="hero-subtitle">
+    Uncovering consumption patterns, seasonal demand trends, and anomalies across 500 households in 5 neighborhoods to drive smarter conservation strategies.
+  </p>
+  <div class="hero-cta">
+    <a href="#charts" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+      View Analysis
+    </a>
+    <a href="#insights" class="btn btn-outline">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4m0-4h.01"/></svg>
+      Key Insights
+    </a>
+  </div>
+</section>
 
-  <!-- OVERVIEW -->
-  <section id="overview">
-    <h2>Problem Statement</h2>
-    <p>
-      Municipal corporations collect household water consumption data but lack visibility into 
-      usage inefficiencies. This analysis identifies <strong>abnormal consumption patterns</strong>, 
-      <strong>high-usage neighborhoods</strong>, and <strong>seasonal demand trends</strong> 
-      to inform conservation strategies.
-    </p>
-    <div class="stats-grid">
+<!-- ═══ Overview ═════════════════════════════════════════════════════════ -->
+<section class="section" id="overview">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label"><span class="line"></span> Overview</div>
+      <h2 class="section-title">Problem Statement</h2>
+      <p class="section-desc">
+        Municipal corporations collect household water consumption data but lack visibility into usage inefficiencies. This analysis identifies abnormal consumption patterns, high-usage neighborhoods, and seasonal demand trends to inform conservation strategies.
+      </p>
+    </div>
+    <div class="stats-grid reveal">
       <div class="stat-card">
-        <div class="number">500</div>
-        <div class="label">Household records</div>
+        <div class="stat-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="stat-number" data-target="500">0</div>
+        <div class="stat-label">Household Records</div>
       </div>
       <div class="stat-card">
-        <div class="number">5</div>
-        <div class="label">Neighborhoods</div>
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="stat-number" data-target="5">0</div>
+        <div class="stat-label">Neighborhoods</div>
       </div>
       <div class="stat-card">
-        <div class="number">12</div>
-        <div class="label">Months analyzed</div>
+        <div class="stat-icon amber">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="stat-number" data-target="12">0</div>
+        <div class="stat-label">Months Analyzed</div>
       </div>
       <div class="stat-card">
-        <div class="number">~3%</div>
-        <div class="label">Anomaly rate</div>
+        <div class="stat-icon red">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="stat-number">~3.6%</div>
+        <div class="stat-label">Anomaly Rate</div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- CHARTS -->
-  <section id="charts">
-    <h2>Visualizations</h2>
-
-    <div class="chart-card">
-      <h3>📈 Monthly Water Usage Trend</h3>
-      <p>Average water consumption across all households per month. The chart clearly shows a peak during summer months (June–August), driven by increased outdoor and cooling usage.</p>
-      <img src="../output/01_monthly_trend.png" alt="Monthly Trend"/>
+<!-- ═══ Charts ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="charts">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label"><span class="line"></span> Visualizations</div>
+      <h2 class="section-title">Data-Driven Charts</h2>
+      <p class="section-desc">
+        Five comprehensive visualizations revealing water usage patterns, neighborhood comparisons, seasonal effects, anomalies, and per-person efficiency.
+      </p>
     </div>
 
-    <div class="chart-card">
-      <h3>🏘️ Neighborhood Comparison</h3>
-      <p>Tech Hub and Market Square consume significantly more water on average, likely due to larger household sizes and commercial activity. Green Park and Old Town are the most efficient neighborhoods.</p>
-      <img src="../output/02_neighborhood_usage.png" alt="Neighborhood Usage"/>
+    <div class="charts-grid">
+      <!-- Chart 1 - Full width -->
+      <div class="chart-card reveal">
+        <div class="chart-header">
+          <div class="chart-tag trend">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            Trend Analysis
+          </div>
+          <h3 class="chart-title">Monthly Water Usage Trend</h3>
+          <p class="chart-desc">Average water consumption across all households per month. The chart clearly shows a peak during summer months (June-August), driven by increased outdoor and cooling usage.</p>
+        </div>
+        <div class="chart-image">
+          <img src="../output/01_monthly_trend.png" alt="Monthly water usage trend line chart showing peak consumption in summer months" loading="lazy"/>
+        </div>
+      </div>
+
+      <!-- Charts 2 & 3 - Side by side -->
+      <div class="charts-row">
+        <div class="chart-card reveal">
+          <div class="chart-header">
+            <div class="chart-tag compare">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              Comparison
+            </div>
+            <h3 class="chart-title">Neighborhood Comparison</h3>
+            <p class="chart-desc">Tech Hub and Market Square consume significantly more water on average. Green Park and Old Town are the most efficient neighborhoods.</p>
+          </div>
+          <div class="chart-image">
+            <img src="../output/02_neighborhood_usage.png" alt="Horizontal bar chart comparing water usage across neighborhoods" loading="lazy"/>
+          </div>
+        </div>
+
+        <div class="chart-card reveal">
+          <div class="chart-header">
+            <div class="chart-tag seasonal">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              Seasonal
+            </div>
+            <h3 class="chart-title">Seasonal Usage Distribution</h3>
+            <p class="chart-desc">Summer usage is both higher and more variable. The wider spread indicates inconsistent behavior across households.</p>
+          </div>
+          <div class="chart-image">
+            <img src="../output/03_seasonal_boxplot.png" alt="Boxplot showing water usage distribution across four seasons" loading="lazy"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts 4 & 5 - Side by side -->
+      <div class="charts-row">
+        <div class="chart-card reveal">
+          <div class="chart-header">
+            <div class="chart-tag anomaly">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Anomaly Detection
+            </div>
+            <h3 class="chart-title">Anomaly Detection</h3>
+            <p class="chart-desc">Red markers indicate abnormally high usage (beyond mean + 2 std). These likely indicate leaks, meter faults, or unreported commercial use.</p>
+          </div>
+          <div class="chart-image">
+            <img src="../output/04_anomalies.png" alt="Scatter plot showing normal readings and flagged anomalous data points" loading="lazy"/>
+          </div>
+        </div>
+
+        <div class="chart-card reveal">
+          <div class="chart-header">
+            <div class="chart-tag heatmap">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><rect x="14" y="14" width="3" height="3"/></svg>
+              Heatmap
+            </div>
+            <h3 class="chart-title">Neighborhood x Month Heatmap</h3>
+            <p class="chart-desc">Per-person monthly usage across all neighborhood-month combinations. Darker cells are priority targets for conservation outreach.</p>
+          </div>
+          <div class="chart-image">
+            <img src="../output/05_heatmap.png" alt="Heatmap showing per-person water usage intensity across neighborhoods and months" loading="lazy"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Insights ═════════════════════════════════════════════════════════ -->
+<section class="section" id="insights">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label"><span class="line"></span> Insights</div>
+      <h2 class="section-title">Key Findings</h2>
+      <p class="section-desc">
+        Core insights extracted from the data, highlighting the most impactful patterns and areas requiring immediate attention.
+      </p>
     </div>
 
-    <div class="chart-card">
-      <h3>🌤️ Seasonal Usage Distribution</h3>
-      <p>Boxplots reveal that summer usage is both higher and more variable. The wider spread indicates inconsistent usage behavior — some households conserve while others spike.</p>
-      <img src="../output/03_seasonal_boxplot.png" alt="Seasonal Boxplot"/>
-    </div>
+    <div class="insights-grid">
+      <div class="insight-card reveal">
+        <div class="insight-icon blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="insight-content">
+          <h3>Tech Hub: Highest Consumption</h3>
+          <p>Average usage is ~40% above the city-wide mean. Likely driven by larger household sizes and potential commercial mixing in residential data.</p>
+          <div class="insight-metric">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            342 L/month avg
+          </div>
+        </div>
+      </div>
 
-    <div class="chart-card">
-      <h3>🚨 Anomaly Detection</h3>
-      <p>Red markers indicate households with abnormally high usage (beyond mean + 2 standard deviations). These likely indicate leaks, meter faults, or unreported commercial use.</p>
-      <img src="../output/04_anomalies.png" alt="Anomalies"/>
-    </div>
+      <div class="insight-card reveal">
+        <div class="insight-icon amber">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        </div>
+        <div class="insight-content">
+          <h3>Summer vs Winter: +49% Spike</h3>
+          <p>June, July, and August consistently show the highest demand. Conservation campaigns are most impactful if launched in May before the spike.</p>
+          <div class="insight-metric">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+            322 L vs 216 L
+          </div>
+        </div>
+      </div>
 
-    <div class="chart-card">
-      <h3>🗺️ Neighborhood × Month Heatmap</h3>
-      <p>This heatmap shows per-person monthly usage across all neighborhood–month combinations. Darker red cells are priority targets for conservation outreach.</p>
-      <img src="../output/05_heatmap.png" alt="Heatmap"/>
+      <div class="insight-card reveal">
+        <div class="insight-icon green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="insight-content">
+          <h3>~3.6% Anomalous Readings</h3>
+          <p>Around 18 records show consumption 2-4x the normal range. These should be physically inspected for leaks or meter malfunctions.</p>
+          <div class="insight-metric">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            18 flagged records
+          </div>
+        </div>
+      </div>
+
+      <div class="insight-card reveal">
+        <div class="insight-icon purple">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div class="insight-content">
+          <h3>Per-Person Usage Reveals Hidden Waste</h3>
+          <p>When normalised by household size, some "low-total" neighborhoods actually have higher per-person usage, masking inefficiency.</p>
+          <div class="insight-metric">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            124.5 L/person/month
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Recommendations ══════════════════════════════════════════════════ -->
+<section class="section" id="recommendations">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label"><span class="line"></span> Recommendations</div>
+      <h2 class="section-title">Conservation Actions</h2>
+      <p class="section-desc">
+        Actionable strategies derived from the data to reduce wastage, optimize billing, and improve water infrastructure.
+      </p>
     </div>
   </section>
 
@@ -264,36 +997,128 @@
   <!-- RECOMMENDATIONS -->
   <section id="recommendations">
     <h2>Conservation Recommendations</h2>
+
     <div class="rec-grid">
-      <div class="rec-card">
-        <div class="emoji">🔍</div>
+      <div class="rec-card reveal">
+        <span class="rec-number">01</span>
+        <div class="rec-emoji">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
         <h4>Leak Audit Program</h4>
-        <p>Prioritize physical inspections in Tech Hub and for all 15 flagged anomaly households.</p>
+        <p>Prioritize physical inspections in Tech Hub and for all 18 flagged anomaly households to identify water leaks early.</p>
       </div>
-      <div class="rec-card">
-        <div class="emoji">📢</div>
+
+      <div class="rec-card reveal">
+        <span class="rec-number">02</span>
+        <div class="rec-emoji">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
         <h4>Pre-Summer Campaign</h4>
-        <p>Launch water-saving awareness drives in April–May before demand peaks in June.</p>
+        <p>Launch water-saving awareness drives in April-May before demand peaks in June for maximum conservation impact.</p>
       </div>
-      <div class="rec-card">
-        <div class="emoji">💰</div>
+
+      <div class="rec-card reveal">
+        <span class="rec-number">03</span>
+        <div class="rec-emoji">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
         <h4>Tiered Pricing</h4>
-        <p>Introduce progressive billing — households using above 250 L/month pay a higher rate.</p>
+        <p>Introduce progressive billing. Households using above 250 L/month pay a higher rate to incentivize savings.</p>
       </div>
-      <div class="rec-card">
-        <div class="emoji">📊</div>
+
+      <div class="rec-card reveal">
+        <span class="rec-number">04</span>
+        <div class="rec-emoji">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
         <h4>Real-Time Monitoring</h4>
-        <p>Install smart meters in the top 20% highest-usage households for live anomaly detection.</p>
+        <p>Install smart meters in the top 20% highest-usage households for live anomaly detection and alerts.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-</div>
-
-<footer>
-  <strong>Team 06</strong> &nbsp;|&nbsp; Applied Data Science Sprint #3 &nbsp;|&nbsp;
-  Data: Mock dataset generated for analysis purposes
+<!-- ═══ Footer ═══════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="droplet-sm"></div>
+        AquaAnalytics
+      </div>
+      <ul class="footer-links">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#charts">Charts</a></li>
+        <li><a href="#insights">Insights</a></li>
+        <li><a href="#recommendations">Actions</a></li>
+      </ul>
+    </div>
+    <div class="footer-copy">
+      <strong>Team 06</strong> &nbsp;|&nbsp; Applied Data Science Sprint #3 &nbsp;|&nbsp; 2023 Dataset &nbsp;|&nbsp; Mock data generated for analysis purposes
+    </div>
+  </div>
 </footer>
+
+<!-- ═══ Scripts ══════════════════════════════════════════════════════════ -->
+<script>
+  // ── Scroll Reveal ────────────────────────────────────────────────────
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, idx) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), idx * 80);
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => revealObserver.observe(el));
+
+  // ── Navbar scroll effect ─────────────────────────────────────────────
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // ── Active nav link ──────────────────────────────────────────────────
+  const sections = document.querySelectorAll('.section, .hero');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const linkObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => linkObserver.observe(s));
+
+  // ── Animated counters ────────────────────────────────────────────────
+  const counters = document.querySelectorAll('.stat-number[data-target]');
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.dataset.target);
+        const duration = 1200;
+        const step = Math.ceil(target / (duration / 16));
+        let current = 0;
+        const timer = setInterval(() => {
+          current += step;
+          if (current >= target) {
+            el.textContent = target;
+            clearInterval(timer);
+          } else {
+            el.textContent = current;
+          }
+        }, 16);
+        counterObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(c => counterObserver.observe(c));
+</script>
 
 </body>
 </html>
