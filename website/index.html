@@ -1,130 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Water Usage Analysis — Team 06</title>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #333; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #333;
+    }
 
     header {
       background: linear-gradient(135deg, #1a6fb5, #0d4a82);
-      color: white; padding: 48px 24px; text-align: center;
+      color: white;
+      padding: 48px 24px;
+      text-align: center;
     }
-    header h1 { font-size: 2rem; margin-bottom: 8px; }
-    header p  { font-size: 1rem; opacity: 0.85; }
+
+    header h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 1rem;
+      opacity: 0.85;
+    }
 
     nav {
-      display: flex; justify-content: center; gap: 12px;
-      background: #0d4a82; padding: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      background: #0d4a82;
+      padding: 12px;
     }
+
     nav a {
-      color: #cde; text-decoration: none; padding: 6px 16px;
-      border-radius: 20px; font-size: 0.9rem; transition: background 0.2s;
+      color: #cde;
+      text-decoration: none;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      transition: background 0.2s;
     }
-    nav a:hover { background: rgba(255,255,255,0.2); }
 
-    .container { max-width: 1000px; margin: 0 auto; padding: 32px 16px; }
+    nav a:hover {
+      background: rgba(255,255,255,0.2);
+    }
 
-    section { margin-bottom: 48px; }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 32px 16px;
+    }
+
+    section {
+      margin-bottom: 48px;
+    }
+
     section h2 {
-      font-size: 1.4rem; color: #1a6fb5;
-      border-left: 4px solid #1a6fb5; padding-left: 12px;
+      font-size: 1.4rem;
+      color: #1a6fb5;
+      border-left: 4px solid #1a6fb5;
+      padding-left: 12px;
       margin-bottom: 16px;
     }
-    section p { line-height: 1.7; color: #555; margin-bottom: 12px; }
+
+    section p {
+      line-height: 1.7;
+      color: #555;
+      margin-bottom: 12px;
+    }
 
     .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px; margin: 24px 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
     }
+
     .stat-card {
-      background: white; border-radius: 10px; padding: 20px;
-      text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
       border-top: 4px solid #1a6fb5;
     }
-    .stat-card .number { font-size: 2rem; font-weight: 700; color: #1a6fb5; }
-    .stat-card .label  { font-size: 0.85rem; color: #777; margin-top: 4px; }
+
+    .stat-card .number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a6fb5;
+    }
+
+    .stat-card .label {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 4px;
+    }
 
     .chart-card {
-      background: white; border-radius: 10px; padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 24px;
+      background: white;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      margin-bottom: 24px;
     }
-    .chart-card h3 { font-size: 1rem; color: #333; margin-bottom: 8px; }
-    .chart-card p  { font-size: 0.9rem; color: #666; margin-bottom: 16px; }
-    .chart-card img { width: 100%; border-radius: 6px; }
 
-    .insight-list { list-style: none; padding: 0; }
-    .insight-list li {
-      background: white; border-radius: 8px; padding: 16px 20px;
-      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      border-left: 4px solid #27ae60; display: flex; align-items: flex-start; gap: 12px;
+    .chart-card h3 {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 8px;
     }
-    .insight-list li .icon { font-size: 1.3rem; }
-    .insight-list li .text strong { display: block; margin-bottom: 4px; }
-    .insight-list li .text span  { font-size: 0.88rem; color: #666; }
+
+    .chart-card p {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .chart-card img {
+      width: 100%;
+      border-radius: 6px;
+    }
+
+    .insight-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .insight-list li {
+      background: white;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border-left: 4px solid #27ae60;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .insight-list li .icon {
+      font-size: 1.3rem;
+    }
+
+    .insight-list li .text strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .insight-list li .text span {
+      font-size: 0.88rem;
+      color: #666;
+    }
 
     .rec-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
     }
+
     .rec-card {
-      background: white; border-radius: 10px; padding: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.07); text-align: center;
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+      text-align: center;
     }
-    .rec-card .emoji { font-size: 2rem; margin-bottom: 10px; }
-    .rec-card h4 { color: #1a6fb5; margin-bottom: 6px; }
-    .rec-card p  { font-size: 0.85rem; color: #666; line-height: 1.6; }
+
+    .rec-card .emoji {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .rec-card h4 {
+      color: #1a6fb5;
+      margin-bottom: 6px;
+    }
+
+    .rec-card p {
+      font-size: 0.85rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .ml-box {
+      background: white;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .ml-box input {
+      padding: 10px;
+      width: 250px;
+      margin-top: 16px;
+      font-size: 16px;
+    }
+
+    .ml-box button {
+      padding: 10px 20px;
+      margin-top: 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .ml-box h2 {
+      margin-top: 20px;
+      border: none;
+      color: green;
+    }
 
     footer {
-      background: #1a1a2e; color: #aaa; text-align: center;
-      padding: 24px; font-size: 0.85rem;
+      background: #1a1a2e;
+      color: #aaa;
+      text-align: center;
+      padding: 24px;
+      font-size: 0.85rem;
     }
-    footer strong { color: #cde; }
+
+    footer strong {
+      color: #cde;
+    }
+
   </style>
 </head>
-<script>
 
-  async function predictScore() {
-  
-      const hours = document.getElementById("hours").value;
-  
-      try {
-  
-          const response = await fetch(
-              "http://127.0.0.1:5000/predict",
-              {
-                  method: "POST",
-  
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-  
-                  body: JSON.stringify({
-                      hours: Number(hours)
-                  })
-              }
-          );
-  
-          const data = await response.json();
-  
-          document.getElementById("result").innerText =
-              "Predicted Score: " + data.predicted_score;
-  
-      } catch(error) {
-  
-          document.getElementById("result").innerText =
-              "Error connecting to ML server";
-      }
-  }
-  
-</script>
 <body>
 
 <header>
   <h1>💧 Municipal Water Usage Analysis</h1>
-  <p>Team 06 &nbsp;|&nbsp; Applied Data Science Sprint #3 &nbsp;|&nbsp; 2023 Dataset</p>
+  <p>Team 06 | Applied Data Science Sprint #3 | 2023 Dataset</p>
 </header>
 
 <nav>
@@ -132,6 +252,7 @@
   <a href="#charts">Charts</a>
   <a href="#insights">Insights</a>
   <a href="#recommendations">Recommendations</a>
+  <a href="#prediction">ML Prediction</a>
 </nav>
 
 <div class="container">
@@ -139,161 +260,217 @@
   <!-- OVERVIEW -->
   <section id="overview">
     <h2>Problem Statement</h2>
+
     <p>
-      Municipal corporations collect household water consumption data but lack visibility into 
-      usage inefficiencies. This analysis identifies <strong>abnormal consumption patterns</strong>, 
-      <strong>high-usage neighborhoods</strong>, and <strong>seasonal demand trends</strong> 
-      to inform conservation strategies.
+      Municipal corporations collect household water consumption data but lack visibility into
+      usage inefficiencies. This analysis identifies abnormal consumption patterns,
+      high-usage neighborhoods, and seasonal demand trends to inform conservation strategies.
     </p>
+
     <div class="stats-grid">
+
       <div class="stat-card">
         <div class="number">500</div>
         <div class="label">Household records</div>
       </div>
+
       <div class="stat-card">
         <div class="number">5</div>
         <div class="label">Neighborhoods</div>
       </div>
+
       <div class="stat-card">
         <div class="number">12</div>
         <div class="label">Months analyzed</div>
       </div>
+
       <div class="stat-card">
         <div class="number">~3%</div>
         <div class="label">Anomaly rate</div>
       </div>
+
     </div>
   </section>
 
   <!-- CHARTS -->
   <section id="charts">
+
     <h2>Visualizations</h2>
 
     <div class="chart-card">
       <h3>📈 Monthly Water Usage Trend</h3>
-      <p>Average water consumption across all households per month. The chart clearly shows a peak during summer months (June–August), driven by increased outdoor and cooling usage.</p>
+      <p>Average water consumption across all households per month.</p>
       <img src="../output/01_monthly_trend.png" alt="Monthly Trend"/>
     </div>
 
     <div class="chart-card">
       <h3>🏘️ Neighborhood Comparison</h3>
-      <p>Tech Hub and Market Square consume significantly more water on average, likely due to larger household sizes and commercial activity. Green Park and Old Town are the most efficient neighborhoods.</p>
+      <p>Comparison of water consumption across neighborhoods.</p>
       <img src="../output/02_neighborhood_usage.png" alt="Neighborhood Usage"/>
     </div>
 
     <div class="chart-card">
       <h3>🌤️ Seasonal Usage Distribution</h3>
-      <p>Boxplots reveal that summer usage is both higher and more variable. The wider spread indicates inconsistent usage behavior — some households conserve while others spike.</p>
+      <p>Summer usage is higher and more variable.</p>
       <img src="../output/03_seasonal_boxplot.png" alt="Seasonal Boxplot"/>
     </div>
 
     <div class="chart-card">
       <h3>🚨 Anomaly Detection</h3>
-      <p>Red markers indicate households with abnormally high usage (beyond mean + 2 standard deviations). These likely indicate leaks, meter faults, or unreported commercial use.</p>
+      <p>Red markers indicate abnormal water usage.</p>
       <img src="../output/04_anomalies.png" alt="Anomalies"/>
     </div>
 
     <div class="chart-card">
       <h3>🗺️ Neighborhood × Month Heatmap</h3>
-      <p>This heatmap shows per-person monthly usage across all neighborhood–month combinations. Darker red cells are priority targets for conservation outreach.</p>
+      <p>Heatmap of monthly neighborhood consumption.</p>
       <img src="../output/05_heatmap.png" alt="Heatmap"/>
     </div>
+
   </section>
 
   <!-- INSIGHTS -->
   <section id="insights">
+
     <h2>Key Insights</h2>
+
     <ul class="insight-list">
+
       <li>
         <div class="icon">🏆</div>
         <div class="text">
           <strong>Tech Hub is the highest-consuming neighborhood</strong>
-          <span>Average usage is ~40% above the city-wide mean. Likely driven by larger household sizes and potential commercial mixing in residential data.</span>
+          <span>Average usage is much higher than the city-wide mean.</span>
         </div>
       </li>
+
       <li>
         <div class="icon">☀️</div>
         <div class="text">
-          <strong>Summer usage is ~40% higher than winter</strong>
-          <span>June, July, and August consistently show the highest demand. Conservation campaigns are most impactful if launched in May before the spike.</span>
+          <strong>Summer usage spikes significantly</strong>
+          <span>June–August consistently show highest consumption.</span>
         </div>
       </li>
+
       <li>
         <div class="icon">⚠️</div>
         <div class="text">
-          <strong>~3% of readings are anomalous</strong>
-          <span>Around 15 records show consumption 2–4x the normal range. These should be physically inspected for leaks or meter malfunctions.</span>
+          <strong>~3% readings are anomalous</strong>
+          <span>Possible leaks or faulty meters detected.</span>
         </div>
       </li>
-      <li>
-        <div class="icon">👤</div>
-        <div class="text">
-          <strong>Per-person usage reveals true inefficiency</strong>
-          <span>When normalised by household size, some "low-total" neighborhoods actually have higher per-person usage, masking inefficiency.</span>
-        </div>
-      </li>
+
     </ul>
+
   </section>
 
-  <h1>ML Prediction</h1>
+  <!-- ML PREDICTION -->
+  <section id="prediction">
 
-  <input
-    type="number"
-    id="hours"
-    placeholder="Enter study hours"
-  />
-  
-  <button onclick="predictScore()">
-    Predict
-  </button>
-  
-  <h2 id="result"></h2>
+    <h2>Machine Learning Prediction</h2>
 
+    <div class="ml-box">
 
+      <p>Enter study hours to predict score</p>
 
+      <input
+        type="number"
+        id="hours"
+        placeholder="Enter study hours"
+      />
 
+      <br>
 
+      <button onclick="predictScore()">
+        Predict
+      </button>
 
+      <h2 id="result"></h2>
 
-</body>
+    </div>
 
-
-
-<h2 id="result"></h2>
+  </section>
 
   <!-- RECOMMENDATIONS -->
   <section id="recommendations">
+
     <h2>Conservation Recommendations</h2>
+
     <div class="rec-grid">
+
       <div class="rec-card">
         <div class="emoji">🔍</div>
         <h4>Leak Audit Program</h4>
-        <p>Prioritize physical inspections in Tech Hub and for all 15 flagged anomaly households.</p>
+        <p>Inspect anomaly households for leaks.</p>
       </div>
+
       <div class="rec-card">
         <div class="emoji">📢</div>
         <h4>Pre-Summer Campaign</h4>
-        <p>Launch water-saving awareness drives in April–May before demand peaks in June.</p>
+        <p>Launch conservation awareness campaigns before summer.</p>
       </div>
+
       <div class="rec-card">
         <div class="emoji">💰</div>
         <h4>Tiered Pricing</h4>
-        <p>Introduce progressive billing — households using above 250 L/month pay a higher rate.</p>
+        <p>Higher pricing for excessive water usage.</p>
       </div>
+
       <div class="rec-card">
         <div class="emoji">📊</div>
         <h4>Real-Time Monitoring</h4>
-        <p>Install smart meters in the top 20% highest-usage households for live anomaly detection.</p>
+        <p>Install smart meters for live anomaly detection.</p>
       </div>
+
     </div>
+
   </section>
 
 </div>
 
 <footer>
-  <strong>Team 06</strong> &nbsp;|&nbsp; Applied Data Science Sprint #3 &nbsp;|&nbsp;
-  Data: Mock dataset generated for analysis purposes
+  <strong>Team 06</strong> | Applied Data Science Sprint #3 |
+  Data generated for analysis purposes
 </footer>
+
+<script>
+
+async function predictScore() {
+
+    const hours =
+        document.getElementById("hours").value;
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/predict",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    hours: Number(hours)
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        document.getElementById("result").innerText =
+            "Predicted Score: " +
+            data.predicted_score;
+
+    } catch(error) {
+
+        document.getElementById("result").innerText =
+            "Error connecting to ML server";
+    }
+}
+
+</script>
 
 </body>
 </html>

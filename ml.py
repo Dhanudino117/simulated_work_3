@@ -1,55 +1,225 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-import joblib
-import os
+from sklearn.ensemble import RandomForestRegressor
+
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error
+)
 
 app = Flask(__name__)
 CORS(app)
 
-MODEL_FILE = "model.pkl"
+# -----------------------------------
+# DATASET
+# -----------------------------------
 
-# TRAIN MODEL FIRST TIME
-if not os.path.exists(MODEL_FILE):
+data = {
 
-    data = {
-        "hours": [1, 2, 3, 4, 5, 6, 7, 8],
-        "score": [10, 20, 30, 40, 50, 60, 70, 80]
-    }
+    "hours": [
+        1, 2, 3, 4, 5,
+        6, 7, 8, 9, 10,
+        2, 3, 4, 5, 6,
+        7, 8, 9
+    ],
 
-    df = pd.DataFrame(data)
+    "score": [
+        10, 20, 30, 40, 50,
+        60, 70, 80, 90, 100,
+        18, 28, 38, 48, 58,
+        68, 78, 88
+    ]
+}
 
-    X = df[["hours"]]
-    y = df["score"]
+df = pd.DataFrame(data)
 
-    model = LinearRegression()
-    model.fit(X, y)
+# -----------------------------------
+# FEATURES AND TARGET
+# -----------------------------------
 
-    joblib.dump(model, MODEL_FILE)
+X = df[["hours"]]
+y = df["score"]
 
-# LOAD MODEL
-model = joblib.load(MODEL_FILE)
+# -----------------------------------
+# TRAIN TEST SPLIT
+# -----------------------------------
 
-# HOME ROUTE
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+# -----------------------------------
+# LINEAR REGRESSION MODEL
+# -----------------------------------
+
+linear_model = LinearRegression()
+
+# MODEL TRAINING
+linear_model.fit(X_train, y_train)
+
+# PREDICTION
+linear_predictions = linear_model.predict(X_test)
+
+# -----------------------------------
+# RANDOM FOREST MODEL
+# -----------------------------------
+
+random_forest_model = RandomForestRegressor(
+    n_estimators=100,
+    random_state=42
+)
+
+# MODEL TRAINING
+random_forest_model.fit(X_train, y_train)
+
+# PREDICTION
+rf_predictions = random_forest_model.predict(X_test)
+
+# -----------------------------------
+# EVALUATION
+# -----------------------------------
+
+linear_mae = mean_absolute_error(
+    y_test,
+    linear_predictions
+)
+
+linear_rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        linear_predictions
+    )
+)
+
+rf_mae = mean_absolute_error(
+    y_test,
+    rf_predictions
+)
+
+rf_rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        rf_predictions
+    )
+)
+
+# -----------------------------------
+# PRINT RESULTS
+# -----------------------------------
+
+print("\n========== MODEL EVALUATION ==========\n")
+
+print("Linear Regression")
+print("MAE :", round(linear_mae, 2))
+print("RMSE:", round(linear_rmse, 2))
+
+print("\nRandom Forest")
+print("MAE :", round(rf_mae, 2))
+print("RMSE:", round(rf_rmse, 2))
+
+# -----------------------------------
+# GRAPH
+# Actual vs Predicted
+# -----------------------------------
+
+plt.figure(figsize=(8, 5))
+
+plt.scatter(
+    y_test,
+    linear_predictions,
+    label="Linear Regression"
+)
+
+plt.scatter(
+    y_test,
+    rf_predictions,
+    label="Random Forest"
+)
+
+plt.plot(
+    [y.min(), y.max()],
+    [y.min(), y.max()]
+)
+
+plt.xlabel("Actual Values")
+plt.ylabel("Predicted Values")
+
+plt.title("Actual vs Predicted")
+
+plt.legend()
+
+plt.savefig("actual_vs_predicted.png")
+
+print("\nGraph saved as:")
+print("actual_vs_predicted.png")
+
+# -----------------------------------
+# FLASK ROUTES
+# -----------------------------------
+
 @app.route("/")
 def home():
+
     return "ML Server Running"
 
-# PREDICTION ROUTE
+# -----------------------------------
+# PREDICTION API
+# -----------------------------------
+
 @app.route("/predict", methods=["POST"])
 def predict():
 
-    data = request.get_json()
+    try:
 
-    hours = data["hours"]
+        data = request.get_json()
 
-    prediction = model.predict([[hours]])
+        hours = float(data["hours"])
 
-    return jsonify({
-        "predicted_score": round(float(prediction[0]), 2)
-    })
+        # USING RANDOM FOREST FOR FINAL PREDICTION
+        prediction = random_forest_model.predict(
+            [[hours]]
+        )
 
-# START SERVER
+        result = round(float(prediction[0]), 2)
+
+        return jsonify({
+
+            "predicted_score": result,
+
+            "linear_regression_mae":
+                round(linear_mae, 2),
+
+            "linear_regression_rmse":
+                round(linear_rmse, 2),
+
+            "random_forest_mae":
+                round(rf_mae, 2),
+
+            "random_forest_rmse":
+                round(rf_rmse, 2)
+
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+# -----------------------------------
+# RUN SERVER
+# -----------------------------------
+
 if __name__ == "__main__":
+
     app.run(debug=True)
