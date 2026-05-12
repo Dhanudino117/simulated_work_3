@@ -4,84 +4,185 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Water Usage Analysis — Team 06</title>
+  <!-- ML Recommendation Engine Styles -->
+  <link rel="stylesheet" href="recommendation.css" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; color: #333; }
-
-    header {
-      background: linear-gradient(135deg, #1a6fb5, #0d4a82);
-      color: white; padding: 48px 24px; text-align: center;
+    body { 
+      font-family: 'Outfit', sans-serif; 
+      background: #f0f4f9; 
+      color: #1e293b; 
+      line-height: 1.6;
     }
-    header h1 { font-size: 2rem; margin-bottom: 8px; }
-    header p  { font-size: 1rem; opacity: 0.85; }
 
+    /* Dark Mode Gradient Hero with Animation */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #f8fafc; 
+      padding: 80px 24px; 
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 50%);
+      animation: rotateGlow 20s linear infinite;
+    }
+    
+    @keyframes rotateGlow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    header h1 { 
+      font-size: 3rem; 
+      font-weight: 700;
+      margin-bottom: 16px; 
+      background: linear-gradient(to right, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      z-index: 1;
+    }
+    
+    header p { 
+      font-size: 1.1rem; 
+      opacity: 0.8; 
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Glassmorphism Navigation */
     nav {
-      display: flex; justify-content: center; gap: 12px;
-      background: #0d4a82; padding: 12px;
+      display: flex; justify-content: center; gap: 16px;
+      background: rgba(15, 23, 42, 0.8); 
+      backdrop-filter: blur(12px);
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     nav a {
-      color: #cde; text-decoration: none; padding: 6px 16px;
-      border-radius: 20px; font-size: 0.9rem; transition: background 0.2s;
+      color: #cbd5e1; text-decoration: none; padding: 8px 20px;
+      border-radius: 30px; font-size: 0.95rem; font-weight: 600; 
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.05);
     }
-    nav a:hover { background: rgba(255,255,255,0.2); }
+    nav a:hover { 
+      background: rgba(56, 189, 248, 0.2); 
+      color: #38bdf8;
+      transform: translateY(-2px);
+    }
 
-    .container { max-width: 1000px; margin: 0 auto; padding: 32px 16px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
 
-    section { margin-bottom: 48px; }
+    section { margin-bottom: 64px; }
     section h2 {
-      font-size: 1.4rem; color: #1a6fb5;
-      border-left: 4px solid #1a6fb5; padding-left: 12px;
-      margin-bottom: 16px;
+      font-size: 2rem; color: #0f172a;
+      margin-bottom: 24px;
+      display: inline-block;
+      position: relative;
     }
-    section p { line-height: 1.7; color: #555; margin-bottom: 12px; }
+    section h2::after {
+      content: '';
+      position: absolute;
+      left: 0; bottom: -8px;
+      width: 40px; height: 4px;
+      background: #38bdf8;
+      border-radius: 2px;
+    }
+    section p { font-size: 1.05rem; color: #475569; margin-bottom: 24px; }
 
+    /* Glassmorphism Stats Cards */
     .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px; margin: 24px 0;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px; margin: 32px 0;
     }
     .stat-card {
-      background: white; border-radius: 10px; padding: 20px;
-      text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      border-top: 4px solid #1a6fb5;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 20px; padding: 32px 24px;
+      text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    .stat-card .number { font-size: 2rem; font-weight: 700; color: #1a6fb5; }
-    .stat-card .label  { font-size: 0.85rem; color: #777; margin-top: 4px; }
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+    .stat-card .number { 
+      font-size: 3rem; font-weight: 700; 
+      background: linear-gradient(135deg, #0f172a, #334155);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-card .label  { 
+      font-size: 0.95rem; color: #64748b; margin-top: 8px; 
+      font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    }
 
+    /* Polished Chart Cards */
     .chart-card {
-      background: white; border-radius: 10px; padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 24px;
+      background: white; border-radius: 24px; padding: 32px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.04); margin-bottom: 32px;
+      transition: transform 0.3s ease;
+      border: 1px solid #e2e8f0;
     }
-    .chart-card h3 { font-size: 1rem; color: #333; margin-bottom: 8px; }
-    .chart-card p  { font-size: 0.9rem; color: #666; margin-bottom: 16px; }
-    .chart-card img { width: 100%; border-radius: 6px; }
+    .chart-card:hover { transform: scale(1.01); }
+    .chart-card h3 { font-size: 1.4rem; color: #0f172a; margin-bottom: 12px; }
+    .chart-card p  { font-size: 1rem; color: #64748b; margin-bottom: 24px; }
+    .chart-card img { width: 100%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 
+    /* Modern List Items with Micro-interactions */
     .insight-list { list-style: none; padding: 0; }
     .insight-list li {
-      background: white; border-radius: 8px; padding: 16px 20px;
-      margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      border-left: 4px solid #27ae60; display: flex; align-items: flex-start; gap: 12px;
+      background: white; border-radius: 16px; padding: 24px;
+      margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      border-left: 6px solid #10b981; display: flex; align-items: flex-start; gap: 20px;
+      transition: transform 0.2s ease;
     }
-    .insight-list li .icon { font-size: 1.3rem; }
-    .insight-list li .text strong { display: block; margin-bottom: 4px; }
-    .insight-list li .text span  { font-size: 0.88rem; color: #666; }
+    .insight-list li:hover { transform: translateX(10px); }
+    .insight-list li .icon { font-size: 2rem; background: #f0fdf4; padding: 12px; border-radius: 12px; }
+    .insight-list li .text strong { display: block; font-size: 1.2rem; margin-bottom: 6px; color: #0f172a; }
+    .insight-list li .text span  { font-size: 1rem; color: #475569; line-height: 1.6; }
 
+    /* Refined Recommendation Grid */
     .rec-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
     }
     .rec-card {
-      background: white; border-radius: 10px; padding: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.07); text-align: center;
+      background: white; border-radius: 20px; padding: 32px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;
+      transition: all 0.3s ease; border: 1px solid #e2e8f0;
     }
-    .rec-card .emoji { font-size: 2rem; margin-bottom: 10px; }
-    .rec-card h4 { color: #1a6fb5; margin-bottom: 6px; }
-    .rec-card p  { font-size: 0.85rem; color: #666; line-height: 1.6; }
+    .rec-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      border-color: #38bdf8;
+    }
+    .rec-card .emoji { 
+      font-size: 3rem; margin-bottom: 16px; display: inline-block;
+      background: #f8fafc; padding: 16px; border-radius: 50%;
+    }
+    .rec-card h4 { color: #0f172a; font-size: 1.2rem; margin-bottom: 12px; }
+    .rec-card p  { font-size: 0.95rem; color: #64748b; line-height: 1.6; }
 
+    /* Sleek Footer */
     footer {
-      background: #1a1a2e; color: #aaa; text-align: center;
-      padding: 24px; font-size: 0.85rem;
+      background: #0f172a; color: #94a3b8; text-align: center;
+      padding: 40px 24px; font-size: 0.95rem; margin-top: 64px;
     }
-    footer strong { color: #cde; }
+    footer strong { color: #f8fafc; }
   </style>
 </head>
 <body>
@@ -96,6 +197,7 @@
   <a href="#charts">Charts</a>
   <a href="#insights">Insights</a>
   <a href="#recommendations">Recommendations</a>
+  <a href="#ml-recommendations">🤖 ML Engine</a>
 </nav>
 
 <div class="container">
@@ -226,12 +328,88 @@
     </div>
   </section>
 
+  <!-- ================================================================== -->
+  <!-- ML-POWERED HOUSEHOLD SIMILARITY RECOMMENDATION ENGINE               -->
+  <!-- This section was added as a machine learning feature demonstration  -->
+  <!-- ML Concept: Content-Based Filtering using Cosine Similarity         -->
+  <!-- ================================================================== -->
+  <section id="ml-recommendations">
+    <h2>🤖 ML-Powered Household Similarity Engine</h2>
+    <p class="ml-section-intro">
+      This feature uses <strong>Content-Based Filtering</strong> — a core machine learning technique —
+      to find households with similar water usage patterns. Select a household or use filters to
+      discover similar profiles based on <strong>neighborhood</strong>, <strong>water usage</strong>,
+      and <strong>household size</strong> using <strong>Cosine Similarity</strong> scoring.
+    </p>
+
+    <!-- Tab Navigation -->
+    <div class="ml-tabs">
+      <button class="ml-tab-btn active" data-tab="tab-select">📋 Select Household</button>
+      <button class="ml-tab-btn" data-tab="tab-filter">🔍 Filter Search</button>
+    </div>
+
+    <!-- Tab 1: Select a Household -->
+    <div id="tab-select" class="ml-tab-panel active">
+      <div class="ml-controls">
+        <div class="ml-control-row">
+          <div class="ml-control-group">
+            <label for="household-select">Choose a Household</label>
+            <select id="household-select">
+              <option value="">— Select a household —</option>
+            </select>
+          </div>
+          <button id="find-similar-btn" class="ml-btn">🔎 Find Similar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Filter-Based Search -->
+    <div id="tab-filter" class="ml-tab-panel">
+      <div class="ml-controls">
+        <div class="ml-control-row">
+          <div class="ml-control-group">
+            <label for="filter-neighborhood">Neighborhood</label>
+            <select id="filter-neighborhood">
+              <option value="">— Select —</option>
+              <option value="Green Park">Green Park</option>
+              <option value="Market Square">Market Square</option>
+              <option value="Old Town">Old Town</option>
+              <option value="River Side">River Side</option>
+              <option value="Tech Hub">Tech Hub</option>
+            </select>
+          </div>
+          <div class="ml-control-group">
+            <label for="filter-usage">Max Water Usage (L)</label>
+            <input type="number" id="filter-usage" placeholder="e.g. 250" min="50" max="500" />
+          </div>
+          <div class="ml-control-group">
+            <label for="filter-size">Household Size</label>
+            <input type="number" id="filter-size" placeholder="e.g. 3" min="1" max="6" />
+          </div>
+          <button id="filter-search-btn" class="ml-btn">🔎 Search</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Household Info -->
+    <div id="selected-household-info"></div>
+
+    <!-- Recommendation Results (dynamically populated by JS) -->
+    <div id="recommendation-results"></div>
+  </section>
+
 </div>
 
 <footer>
   <strong>Team 06</strong> &nbsp;|&nbsp; Applied Data Science Sprint #3 &nbsp;|&nbsp;
   Data: Mock dataset generated for analysis purposes
 </footer>
+
+<!-- ML Recommendation Engine Scripts -->
+<!-- recommendation.js  = Pure ML logic (feature engineering, cosine similarity) -->
+<!-- recommendation-ui.js = DOM manipulation and rendering -->
+<script src="recommendation.js"></script>
+<script src="recommendation-ui.js"></script>
 
 </body>
 </html>
